@@ -37,7 +37,7 @@ def __csv_reader(file_name: str):
         for line in reader:
             path = Path(line[1])
             __make_dir(path)
-            __save_images(line[0],path)
+            __save_images(line[0], path)
 
 
 def image_parser(file_name: str = "url.csv"):
@@ -50,7 +50,7 @@ def image_parser(file_name: str = "url.csv"):
         for line in reader:
             path = Path(line[1])
             __make_dir(path)
-            __save_images(line[0],path)
+            __save_images(line[0], path)
 
 
 if __name__ == "__main__":
