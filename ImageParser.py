@@ -9,6 +9,7 @@ def __make_dir(path: Path):
     if not path.is_dir():
         path.mkdir()
 
+
 def __save_images(url: str, path: Path):
     for images in __get_response(url):
         for count in tqdm(range(len(images.get("images")))):
