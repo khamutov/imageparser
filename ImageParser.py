@@ -11,12 +11,13 @@ def __make_dir(path: Path):
 
 
 def __save_images(url: str, path: Path):
-    for images in __get_response(url):
-        for count in tqdm(range(len(images.get("images")))):
-            last_segment = __get_last_segment(images.get("images")[count])
+    resp = __get_response(url)
+    for images_count in tqdm(range(len(resp)), desc='load categories      '):
+        for count_image in tqdm(range(len(resp[images_count].get("images"))), desc='load images     '):
+            last_segment = __get_last_segment(resp[images_count].get("images")[count_image])
             if path.joinpath(last_segment).is_file():
                 continue
-            urllib.request.urlretrieve(images.get("images")[count],
+            urllib.request.urlretrieve(resp[images_count].get("images")[count_image],
                                        path.joinpath(last_segment))
 
 
