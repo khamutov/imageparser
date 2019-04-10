@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 def __get(url:str) -> json:
-    return json.load(urllib.request.urlopen(url=url))
+    return json.load(urllib.request.urlopen(url=url)).get("data")
 
 
 def image_parser():
