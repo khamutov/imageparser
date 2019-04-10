@@ -15,8 +15,10 @@ def get_last_segment(url: str) -> str:
 def image_parser():
     with open("url") as f:
         for lines in f.readlines():
+            if not lines.strip():
+                continue
             line = lines.split(" ")
-            path = Path(line[1])
+            path = Path(line[1].rstrip())
             if not path.is_dir():
                 path.mkdir()
             for images in __get(line[0]):
