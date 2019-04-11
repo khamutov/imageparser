@@ -13,9 +13,9 @@ class ImageParser:
         if not path.is_dir():
             path.mkdir()
 
-    def __save_images(self, url: str, path: Path):
+    def __save_images(self,row_name:str, url: str, path: Path):
         arr = self.__collect_images(self.__get_response(url))
-        for image in tqdm(arr, desc="download: "):
+        for image in tqdm(arr, desc="download {}'s images: ".format(row_name)):
             last_segment = self.__get_last_segment(image)
             if not path.joinpath(last_segment).is_file():
                 urllib.request.urlretrieve(image,
@@ -37,7 +37,7 @@ class ImageParser:
             for row in reader:
                 path = Path(row["dir_name"])
                 self.__make_dir(path)
-                self.__save_images(row["url"], path)
+                self.__save_images(row["dir_name"],row["url"], path)
 
 
 if __name__ == "__main__":
