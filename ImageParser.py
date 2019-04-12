@@ -8,7 +8,7 @@ from tqdm import tqdm
 class ImageParser:
     def __make_dir(self, path: Path):
         if not path.is_dir():
-            path.mkdir()
+            path.mkdir(parents=True)
 
     def __save_images(self, url: str, path: Path):
         resp = self.__get_response(url)
@@ -34,7 +34,7 @@ class ImageParser:
         with open(file, "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
             for row in reader:
-                path = Path(row["dir_name"])
+                path = Path('.') / 'images' /Path(row["dir_name"])
                 self.__make_dir(path)
                 self.__save_images(row["url"], path)
 
