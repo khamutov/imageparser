@@ -6,10 +6,6 @@ from tqdm import tqdm
 
 
 class ImageParser:
-    def __make_dir(self, path: Path):
-        if not path.is_dir():
-            path.mkdir()
-
     def __save_images(self, url: str, path: Path):
         resp = self.__get_response(url)
         for image_list in tqdm(resp, desc='load categories      '):
@@ -18,10 +14,10 @@ class ImageParser:
                 if path.joinpath(last_segment).is_file():
                     continue
                 urllib.request.urlretrieve(image,
-                                           path.joinpath(last_segment))
+                                           str(path.joinpath(last_segment)))
 
     def __get_response(self, url: str) -> str:
-        return json.load(urllib.request.urlopen(url=url)).get("data")
+        return json.loads(urllib.request.urlopen(url=url).read().decode()).get("data")
 
     def __get_last_segment(self, url: str) -> str:
         return str(Path(url).name.split("?")[0])
@@ -31,11 +27,11 @@ class ImageParser:
         if not file.is_file():
             raise Exception("file not found")
 
-        with open(file, "r") as f:
+        with open(str(file), "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
             for row in reader:
                 path = Path(row["dir_name"])
-                self.__make_dir(path)
+                path.mkdir(parents=True, exist_ok=True)
                 self.__save_images(row["url"], path)
 
 
