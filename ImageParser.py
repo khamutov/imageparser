@@ -24,7 +24,7 @@ class ImageParser:
             for row in reader:
                 for image in tqdm(arr[self.last:
                                       round(self.last + round(len(arr) * int(row.get("percent")))/100)], desc= "move images:"):
-                    shutil.move(src=path.joinpath(image),
+                    shutil.copyfile(src=path.joinpath(image),
                                 dst=path.joinpath(row.get("section")).joinpath(image))
                 self.last = round(self.last + round(len(arr) * int(row.get("percent")))/100)
 
