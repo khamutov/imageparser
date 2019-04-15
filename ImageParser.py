@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 from tqdm import tqdm
 
+from Decorators import make_dirs
+
 
 class ImageParser:
     def __get_images_array(self, url: str) -> []:
@@ -51,10 +53,7 @@ class ImageParser:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
             for row in tqdm(reader, desc="Done: "):
                 path = Path(row["dir_name"])
-                path.mkdir(parents=True, exist_ok=True)
-                path.joinpath("train").mkdir(parents=True, exist_ok=True)
-                path.joinpath("validation").mkdir(parents=True, exist_ok=True)
-                path.joinpath("test").mkdir(parents=True, exist_ok=True)
+                make_dirs(path)
                 self.__save_images(row["url"], row["dir_name"], path)
 
 
