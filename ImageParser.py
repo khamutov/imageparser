@@ -1,7 +1,8 @@
 import csv
 import json
-import random
+import shutil
 import urllib.request
+import os
 from pathlib import Path
 from tqdm import tqdm
 
@@ -12,31 +13,28 @@ class ImageParser:
         for item in self.__get_response(url):
             for image in item.get("images"):
                 array.append(image)
-        random.shuffle(array)
         return array
 
+    def __move_images_to_folder(self, path: Path, arr: [], file="categories.csv"):
+        with open(file, "r") as f:
+            reader = csv.DictReader(f, ["section", "percent"], delimiter=";")
+            self.last = int(0)
+            for row in reader:
+                for image in tqdm(arr[self.last:
+                                      round(self.last + round(len(arr) * int(row.get("percent")))/100)], desc= "move images:"):
+                    shutil.move(src=path.joinpath(image),
+                                dst=path.joinpath(row.get("section")).joinpath(image))
+                self.last = round(self.last + round(len(arr) * int(row.get("percent")))/100)
+
     def __save_images(self, url: str, dir_name: str, path: Path):
-        array = self.__get_images_array(url)
-        test = round(len(array) * 0.6)
-        train = round(test + (len(array) * 0.2))
-
-        for image in tqdm(array[:test], desc=dir_name + " fill test"):
+        for image in tqdm(self.__get_images_array(url), desc=dir_name + ": Download images"):
             last_segment = self.__get_last_segment(image)
-            if not path.joinpath("test").joinpath(last_segment).is_file():
+            if not path.joinpath(last_segment).is_file():
                 urllib.request.urlretrieve(image,
-                                           str(path.joinpath("test").joinpath(last_segment)))
+                                           str(path.joinpath(last_segment)))
 
-        for image in tqdm(array[test + 1:train], desc=dir_name + "fill train"):
-            last_segment = self.__get_last_segment(image)
-            if not path.joinpath("train").joinpath(last_segment).is_file():
-                urllib.request.urlretrieve(image,
-                                           str(path.joinpath("train").joinpath(last_segment)))
+        self.__move_images_to_folder(path, [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
 
-        for image in tqdm(array[train + 1:], desc=dir_name + "fill validation"):
-            last_segment = self.__get_last_segment(image)
-            if not path.joinpath("validation").joinpath(last_segment).is_file():
-                urllib.request.urlretrieve(image,
-                                           str(path.joinpath("validation").joinpath(last_segment)))
 
     def __get_response(self, url: str) -> str:
         return json.load(urllib.request.urlopen(url=url)).get("data")
