@@ -9,6 +9,17 @@ from tqdm import tqdm
 from Decorators import make_dirs
 
 
+def move_images_to_folder(path: Path, arr: [], file="categories.csv"):
+    with open(file, "r") as f:
+        reader = csv.DictReader(f, ["section", "percent"], delimiter=";")
+        last = int(0)
+        for row in reader:
+            for image in tqdm(arr[last:
+            round(last + round(len(arr) * int(row.get("percent"))) / 100)], desc="move images:"):
+                shutil.copyfile(src=path.joinpath(image),
+                                dst=path.joinpath(row.get("section")).joinpath(image))
+            last = round(last + round(len(arr) * int(row.get("percent"))) / 100)
+
 class ImageParser:
     def __get_images_array(self, url: str) -> []:
         array = []
@@ -17,17 +28,6 @@ class ImageParser:
                 array.append(image)
         return array
 
-    def __move_images_to_folder(self, path: Path, arr: [], file="categories.csv"):
-        with open(file, "r") as f:
-            reader = csv.DictReader(f, ["section", "percent"], delimiter=";")
-            self.last = int(0)
-            for row in reader:
-                for image in tqdm(arr[self.last:
-                                      round(self.last + round(len(arr) * int(row.get("percent")))/100)], desc= "move images:"):
-                    shutil.copyfile(src=path.joinpath(image),
-                                dst=path.joinpath(row.get("section")).joinpath(image))
-                self.last = round(self.last + round(len(arr) * int(row.get("percent")))/100)
-
     def __save_images(self, url: str, dir_name: str, path: Path):
         for image in tqdm(self.__get_images_array(url), desc=dir_name + ": Download images"):
             last_segment = self.__get_last_segment(image)
@@ -35,7 +35,7 @@ class ImageParser:
                 urllib.request.urlretrieve(image,
                                            str(path.joinpath(last_segment)))
 
-        self.__move_images_to_folder(path, [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+        move_images_to_folder(path, [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
 
 
     def __get_response(self, url: str) -> str:
