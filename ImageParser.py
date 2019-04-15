@@ -1,23 +1,39 @@
 import csv
 import json
+import random
 import urllib.request
 from pathlib import Path
 from tqdm import tqdm
 
+from Decorators import make_dirs
+
 
 class ImageParser:
+    def __get_images_array(self, url: str) -> []:
+        array = []
+        for item in self.__get_response(url):
+            for image in item.get("images"):
+                array.append(image)
+        return random.shuffle(array)
+
     def __save_images(self, url: str, path: Path):
-        resp = self.__get_response(url)
-        for image_list in tqdm(resp, desc='load categories      '):
-            for image in tqdm(image_list.get("images"), desc='load image_list     '):
-                last_segment = self.__get_last_segment(image)
-                if path.joinpath(last_segment).is_file():
-                    continue
-                urllib.request.urlretrieve(image,
-                                           str(path.joinpath(last_segment)))
+        array = self.__get_images_array(url)
+
+        for image,count in tqdm(range(len(array)), desc='load image_list'):
+            if image == 5:
+            elif image == 30:
+            else:
+            last_segment = self.__get_last_segment(array[image])
+            urllib.request.urlretrieve(array[image],
+                                       str(dirs[dir_count].joinpath(last_segment)))
+        #     last_segment = self.__get_last_segment(image)
+        #     if path.joinpath(last_segment).is_file():
+        #         continue
+        #     urllib.request.urlretrieve(image,
+        #                                str(path.joinpath(last_segment)))
 
     def __get_response(self, url: str) -> str:
-        return json.loads(urllib.request.urlopen(url=url).read().decode()).get("data")
+        return json.load(urllib.request.urlopen(url=url)).get("data")
 
     def __get_last_segment(self, url: str) -> str:
         return str(Path(url).name.split("?")[0])
@@ -27,11 +43,11 @@ class ImageParser:
         if not file.is_file():
             raise Exception("file not found")
 
-        with open(str(file), "r") as f:
+        with open(file, "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
-            for row in reader:
+            for row in tqdm(reader, desc="Done: "):
                 path = Path(row["dir_name"])
-                path.mkdir(parents=True, exist_ok=True)
+                make_dirs(path)
                 self.__save_images(row["url"], path)
 
 
