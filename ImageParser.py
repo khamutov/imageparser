@@ -43,14 +43,14 @@ class ImageParser:
                     f.write(await response.read())
 
 
-    async def __save_images(self, url: str, path: Path):
+    async def __save_images(self, url: str, dir_name: str, path: Path):
         async with aiohttp.ClientSession() as session:
             tasks = []
             for image in (self.__get_images_array(url)):
                 if not path.joinpath(self.__get_last_segment(image)).is_file():
                     tasks.append(self.__fetch(image, session, path))
 
-            for task in tqdm(tasks, desc="download: "):
+            for task in tqdm(tasks, desc="download {}".format(dir_name)):
                 await task
 
         move_images_to_folder(path, [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
@@ -75,7 +75,7 @@ class ImageParser:
                 path = Path(row["dir_name"])
                 make_dirs(path)
                 loop = asyncio.get_event_loop()
-                loop.run_until_complete(self.__save_images(row["url"], path))
+                loop.run_until_complete(self.__save_images(row["url"], row["dir_name"], path))
 
 
 if __name__ == "__main__":
