@@ -26,8 +26,7 @@ class MoveImages:
 
     def __move_images_to_folder(self,path_from: Path, path_dist: Path, dir_name: str, images: []):
         for image in tqdm(images, desc="move images to {} len {}".format(dir_name, len(images))):
-            path = Path(path_dist.joinpath("".join(f for f in image.split("\\")[1:])))
-            print(path.is_file())
+            path = Path(path_dist)
             if not path.is_file():
                 if not path_dist.is_dir():
                     os.mkdir(path_dist)
