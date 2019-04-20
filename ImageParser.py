@@ -1,6 +1,6 @@
+# coding=utf-8
 import csv
 import json
-import random
 import shutil
 import urllib.request
 import os
@@ -13,20 +13,13 @@ from tqdm import tqdm
 from Decorators import make_dirs
 
 sem = asyncio.Semaphore(3)
+valid_pct=0.2
+train_pct=0.2
 
-
-def move_images_to_folder(path: Path, arr: [], file="categories.csv"):
-    random.shuffle(arr)
-    with open(file, "r") as f:
-        reader = csv.DictReader(f, ["section", "percent"], delimiter=";")
-        last = int(0)
-        for row in reader:
-            for image in tqdm(arr[last:
-            round(last + round(len(arr) * int(row.get("percent"))) / 100)], desc="move images:"):
-                shutil.copyfile(src=path.joinpath(image),
-                                dst=path.joinpath(row.get("section")).joinpath(image))
-            last = round(last + round(len(arr) * int(row.get("percent"))) / 100)
-
+def move_images_to_folder(path_src:Path, path_dist: Path, dir_name:str, images : []):
+    for image in tqdm(images,desc="move images to {} len {}".format(dir_name,len(images))):
+        if not path_dist.joinpath(image).is_file():
+            shutil.copyfile(src=path_src.joinpath(image),dst=path_dist.joinpath(image))
 
 class ImageParser:
     def __get_images_array(self, url: str) -> []:
@@ -40,6 +33,7 @@ class ImageParser:
         async with sem:
             async with session.get(url) as response:
                 with open(path.joinpath(self.__get_last_segment(str(response.url))), 'wb') as f:
+                    print("download",url)
                     f.write(await response.read())
 
 
@@ -52,8 +46,14 @@ class ImageParser:
 
             for task in tqdm(tasks, desc="download {}".format(dir_name)):
                 await task
+        images = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        validation_idx = round(len(images) * valid_pct)
+        test_idx = round(validation_idx + len(images) * train_pct)
+        move_images_to_folder(path,path.joinpath("train"),"train",images[:validation_idx])
+        move_images_to_folder(path,path.joinpath("test"),"test",images[validation_idx: test_idx])
+        move_images_to_folder(path,path.joinpath("validation"),"validation",images[test_idx:])
 
-        move_images_to_folder(path, [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))])
+
 
 
     def __get_response(self, url: str) -> str:
