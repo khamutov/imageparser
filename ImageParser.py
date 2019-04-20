@@ -11,10 +11,10 @@ import aiohttp as aiohttp
 from tqdm import tqdm
 
 from Decorators import make_dirs
+from MoveImagesToFolder import MoveImages
 
 sem = asyncio.Semaphore(3)
-valid_pct=0.2
-train_pct=0.2
+file_name = "url.csv"
 
 def move_images_to_folder(path_src:Path, path_dist: Path, dir_name:str, images : []):
     for image in tqdm(images,desc="move images to {} len {}".format(dir_name,len(images))):
@@ -46,15 +46,6 @@ class ImageParser:
 
             for task in tqdm(tasks, desc="download {}".format(dir_name)):
                 await task
-        images = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-        validation_idx = round(len(images) * valid_pct)
-        test_idx = round(validation_idx + len(images) * train_pct)
-        move_images_to_folder(path,path.joinpath("train"),"train",images[:validation_idx])
-        move_images_to_folder(path,path.joinpath("test"),"test",images[validation_idx: test_idx])
-        move_images_to_folder(path,path.joinpath("validation"),"validation",images[test_idx:])
-
-
-
 
     def __get_response(self, url: str) -> str:
         return json.load(urllib.request.urlopen(url=url)).get("data")
@@ -63,20 +54,24 @@ class ImageParser:
     def __get_last_segment(self, url: str) -> str:
         return str(Path(url).name.split("?")[0])
 
-
     def image_parser(self, file_name: str = "url.csv"):
         file = Path(file_name)
-        if not file.is_file():
-            raise Exception("file not found")
-
         with open(file, "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
-            for row in tqdm(reader, desc="Done: "):
+            for row in tqdm(reader):
                 path = Path(row["dir_name"])
                 make_dirs(path)
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(self.__save_images(row["url"], row["dir_name"], path))
 
-
 if __name__ == "__main__":
-    ImageParser().image_parser()
+    with open(file_name,"r") as f:
+        ImageParser().image_parser()
+        reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
+        for row in reader:
+            path = Path(row["dir_name"])
+            images = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+            MoveImages(images).move_images(path)
+
+
+
