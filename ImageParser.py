@@ -71,7 +71,9 @@ if __name__ == "__main__":
         for row in reader:
             path = Path(row["dir_name"])
             images = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-            MoveImages(images).move_images(path)
+            move_images = MoveImages(images)
+            for dir in move_images.dir_name:
+                move_images.move_images(path_from=path,path_to=path.joinpath(dir))
 
 
 
