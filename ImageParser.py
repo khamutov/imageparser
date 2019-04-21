@@ -62,7 +62,7 @@ class ImageParser:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
             for row in tqdm(reader):
                 path = Path(row["dir_name"])
-                make_dirs(path_to.joinpath(path))
+                path_to.joinpath(path).mkdir(parents=True, exist_ok=True)
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(self.__save_images(path_to,row["url"], row["dir_name"], path))
 
