@@ -9,7 +9,6 @@ from pathlib import Path
 import aiohttp as aiohttp
 from tqdm import tqdm
 
-from Decorators import make_dirs
 from MoveImagesToFolder import MoveImages
 
 sem = asyncio.Semaphore(3)
