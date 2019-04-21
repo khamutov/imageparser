@@ -1,24 +1,52 @@
+# coding=utf-8
 import csv
 import json
+import shutil
 import urllib.request
+import asyncio
 from pathlib import Path
+
+import aiohttp as aiohttp
 from tqdm import tqdm
+
+from Decorators import make_dirs
+from MoveImagesToFolder import MoveImages
+
+sem = asyncio.Semaphore(3)
+
+file_name = "url.csv"
+
+
+def move_images_to_folder(path_src: Path, path_dist: Path, dir_name: str, images: []):
+    for image in tqdm(images, desc="move images to {} len {}".format(dir_name, len(images))):
+        if not path_dist.joinpath(image).is_file():
+            shutil.copyfile(src=path_src.joinpath(image), dst=path_dist.joinpath(image))
 
 
 class ImageParser:
-    def __make_dir(self, path: Path):
-        if not path.is_dir():
-            path.mkdir(parents=True)
+    def __get_images_array(self, url: str) -> []:
+        array = []
+        for item in self.__get_response(url):
+            for image in item.get("images"):
+                array.append(image)
+        return array
 
-    def __save_images(self, url: str, path: Path):
-        resp = self.__get_response(url)
-        for image_list in tqdm(resp, desc='load categories      '):
-            for image in tqdm(image_list.get("images"), desc='load image_list     '):
-                last_segment = self.__get_last_segment(image)
-                if path.joinpath(last_segment).is_file():
-                    continue
-                urllib.request.urlretrieve(image,
-                                           path.joinpath(last_segment))
+    async def __fetch(self, url, session, path: Path):
+        async with sem:
+            async with session.get(url) as response:
+                with open(path.joinpath(self.__get_last_segment(str(response.url))), 'wb') as f:
+                    print("download", url)
+                    f.write(await response.read())
+
+    async def __save_images(self, url: str, dir_name: str, path: Path):
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            for image in (self.__get_images_array(url)):
+                if not path.joinpath(self.__get_last_segment(image)).is_file():
+                    tasks.append(self.__fetch(image, session, path))
+
+            for task in tqdm(tasks, desc="download {}".format(dir_name)):
+                await task
 
     def __get_response(self, url: str) -> str:
         return json.load(urllib.request.urlopen(url=url)).get("data")
@@ -28,16 +56,19 @@ class ImageParser:
 
     def image_parser(self, file_name: str = "url.csv"):
         file = Path(file_name)
-        if not file.is_file():
-            raise Exception("file not found")
-
         with open(file, "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
-            for row in reader:
-                path = Path('.') / 'images' /Path(row["dir_name"])
-                self.__make_dir(path)
-                self.__save_images(row["url"], path)
+            for row in tqdm(reader):
+                path = Path(row["dir_name"])
+                make_dirs(path)
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(self.__save_images(row["url"], row["dir_name"], path))
 
 
 if __name__ == "__main__":
-    ImageParser().image_parser()
+    with open(file_name, "r") as f:
+        ImageParser().image_parser()
+        reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
+        for row in reader:
+            path = Path(row["dir_name"])
+            MoveImages().move_images(path_from=path, path_to=path)
