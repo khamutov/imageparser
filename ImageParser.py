@@ -1,7 +1,6 @@
 # coding=utf-8
 import csv
 import json
-import shutil
 import urllib.request
 import asyncio
 from pathlib import Path
