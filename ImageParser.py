@@ -70,7 +70,4 @@ class ImageParser:
 if __name__ == "__main__":
     with open(file_name, "r") as f:
         ImageParser().image_parser(path_to=Path('images'))
-        reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
-        for row in reader:
-            path = Path(row["dir_name"])
-            MoveImages().move_images(path_from=path, path_to=Path(path_to).joinpath(path))
+        MoveImages().move_images(path_from=Path('images'), path_to=Path('images_net'))
