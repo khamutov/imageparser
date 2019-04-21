@@ -26,13 +26,15 @@ class MoveImages:
 
     def __move_images_to_folder(self,path_from: Path, path_dist: Path, dir_name: str, images: []):
         for image in tqdm(images, desc="move images to {} len {}".format(dir_name, len(images))):
-            path = Path(path_dist)
+            image_parts = list(Path(image).parts)
+            label = image_parts[1:-1]
+            image_name = image_parts[-1]
+            path = Path(path_dist) / Path("/".join(label))
             if not path.is_file():
-                if not path_dist.is_dir():
-                    os.mkdir(path_dist)
+                if not path.is_dir():
+                    path.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(src=image,
-                                dst=path_dist.joinpath(str(list(Path(image).parts)[1:])),
-                                )
+                                dst=path.joinpath(image_name))
 
     def move_images(self, path_from: Path, path_to: Path):
         image_dict = self.__array_images = self.__collect_files(path_from)
