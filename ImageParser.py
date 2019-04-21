@@ -13,11 +13,6 @@ from MoveImagesToFolder import MoveImages
 
 sem = asyncio.Semaphore(3)
 
-file_name = "url.csv"
-
-path_to = ""
-
-
 def move_images_to_folder(path_src: Path, path_to: Path, path_dist: Path, dir_name: str, images: []):
     for image in tqdm(images, desc="move images to {} len {}".format(dir_name, len(images))):
         if not path_dist.joinpath(image).is_file():
