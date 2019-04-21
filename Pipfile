@@ -7,6 +7,13 @@ verify_ssl = true
 
 [packages]
 tqdm = "*"
+aiohttp = "*"
+async-timeout = "*"
+attrs = "*"
+chardet = "*"
+idna = "*"
+multidict = "*"
+yarl = "*"
 
 [requires]
 python_version = "3.7"
