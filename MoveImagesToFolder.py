@@ -33,7 +33,7 @@ class MoveImages:
                 if not path_dist.is_dir():
                     os.mkdir(path_dist)
                 shutil.copyfile(src=image,
-                                dst=path_dist.joinpath("".join(f for f in image.split("\\")[1:])))
+                                dst=path_dist.joinpath(str(list(Path(image).parts)[1:])),
 
     def move_images(self, path_from: Path, path_to: Path):
         image_dict = self.__array_images = self.__collect_files(path_from)
