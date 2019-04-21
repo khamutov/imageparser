@@ -14,7 +14,7 @@ from MoveImagesToFolder import MoveImages
 sem = asyncio.Semaphore(3)
 
 file_name = "url.csv"
-max_page = 30
+max_page = 3
 
 class ImageParser:
     def __get_images_array(self, url: str, page_params: {} = {"page": 1}) -> []:
