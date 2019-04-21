@@ -9,12 +9,13 @@ from pathlib import Path
 import aiohttp as aiohttp
 from tqdm import tqdm
 
+from CollectMeta import Meta
 from MoveImagesToFolder import MoveImages
 
 sem = asyncio.Semaphore(3)
 
 file_name = "url.csv"
-max_page = 3
+max_page = 1
 
 class ImageParser:
     def __get_images_array(self, url: str, page_params: {} = {"page": 1}) -> []:
@@ -33,7 +34,7 @@ class ImageParser:
 
     async def __save_images(self, path_to: Path, url: str, dir_name: str, path: Path):
         tempCount = 1
-        while tempCount != max_page and len(self.__get_images_array(url, {"page" : tempCount})) != 0:
+        while tempCount <= max_page and len(self.__get_images_array(url, {"page" : tempCount})) != 0:
             async with aiohttp.ClientSession() as session:
                 tasks = []
                 for image in (self.__get_images_array(url, {"page" : tempCount})):
@@ -44,7 +45,9 @@ class ImageParser:
                 tempCount += 1
 
     def __get_response(self, url: str, params) -> str:
-        return json.load(urllib.request.urlopen(url +"?" + params)).get("data")
+        resp = json.load(urllib.request.urlopen(url +"?" + params))
+        Meta().collect_meta(dir_name=self.dir_name,data=resp)
+        return resp.get("data")
 
     def __get_last_segment(self, url: str) -> str:
         return str(Path(url).name.split("?")[0])
@@ -54,10 +57,11 @@ class ImageParser:
         with open(file, "r") as f:
             reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
             for row in tqdm(reader):
-                path = Path(row["dir_name"])
+                self.dir_name = row["dir_name"]
+                path = Path(self.dir_name)
                 path_to.joinpath(path).mkdir(parents=True, exist_ok=True)
                 loop = asyncio.get_event_loop()
-                loop.run_until_complete(self.__save_images(path_to,row["url"], row["dir_name"], path))
+                loop.run_until_complete(self.__save_images(path_to,row["url"], self.dir_name, path))
 
 
 if __name__ == "__main__":
