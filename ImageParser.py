@@ -39,7 +39,7 @@ class ImageParser:
                 for image in (self.__get_images_array(url, {"page" : tempCount})):
                     if not path_to.joinpath(path.joinpath(self.__get_last_segment(image))).is_file():
                         tasks.append(self.__fetch(path_to, image, session, path))
-                for task in tqdm(tasks, desc="download {}".format(dir_name)):
+                for task in tqdm(tasks, desc="download {} page {}".format(dir_name, tempCount)):
                     await task
                 tempCount += 1
 
