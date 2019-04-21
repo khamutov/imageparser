@@ -5,8 +5,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from Decorators import make_dirs
-
 valid_pct = 0.2
 train_pct = 0.2
 
@@ -34,10 +32,10 @@ class MoveImages:
                     os.mkdir(path_dist)
                 shutil.copyfile(src=image,
                                 dst=path_dist.joinpath(str(list(Path(image).parts)[1:])),
+                                )
 
     def move_images(self, path_from: Path, path_to: Path):
         image_dict = self.__array_images = self.__collect_files(path_from)
-        make_dirs(path_to)
         for i in tqdm(image_dict,desc="Copy files"):
             self.__array_images = image_dict[i]
             if len(self.__array_images) == 0:
