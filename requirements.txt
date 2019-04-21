@@ -1,1 +1,8 @@
 tqdm
+aiohttp
+async-timeout
+attrs
+chardet
+idna
+multidict
+yarl
