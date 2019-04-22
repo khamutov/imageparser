@@ -4,6 +4,7 @@ import json
 import urllib.request
 import urllib.parse
 import asyncio
+import aiofiles as aiof
 from pathlib import Path
 
 import aiohttp as aiohttp
@@ -26,24 +27,21 @@ class ImageParser:
                 array.append(image.split("?")[0])
         return array
 
-    async def __fetch(self, path_to: Path, url, session, path: Path):
+    async def __fetch(self, path_to: Path, dir_name: Path, url: str):
         async with sem:
-            async with session.get(url=url) as response:
-                temp = path_to.joinpath(path.joinpath(self.__get_last_segment(str(response.url))))
-                with open(temp, 'wb') as f:
-                    f.write(await response.read())
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url=url) as response:
+                    temp = path_to.joinpath(dir_name.joinpath(self.__get_last_segment(str(response.url))))
+                    async with aiof.open(temp, 'wb') as f:
+                        await f.write(await response.read())
 
     async def __save_images(self, path_to: Path, url: str, dir_name: str, path: Path):
         tempCount = 1
         while tempCount <= max_page and len(self.__get_images_array(url, {"page": tempCount})) != 0:
-            async with aiohttp.ClientSession() as session:
-                tasks = []
-                for image in (self.__get_images_array(url, {"page": tempCount})):
-                    if not path_to.joinpath(path.joinpath(self.__get_last_segment(image))).is_file():
-                        tasks.append(self.__fetch(path_to, image, session, path))
-                for task in tqdm(tasks, desc="download {} page {}".format(dir_name, tempCount)):
-                    await task
-                tempCount += 1
+            images = self.__get_images_array(url, {"page": tempCount})
+            for image in tqdm(images):
+                await self.__fetch(path_to=path_to,dir_name=path, url=image)
+            tempCount += 1
 
     def __get_response(self, url: str, params) -> str:
         resp = json.load(urllib.request.urlopen(url + "?" + params))
