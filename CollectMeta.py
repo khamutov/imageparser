@@ -16,5 +16,5 @@ class Meta:
                     csv_reader = csv.writer(file, delimiter=';')
                     csv_reader.writerow([dir_name,
                                          image.split("?")[0],
-                                         item["photobank_id"]
+                                         item["photobank_id"]]
                                         )
