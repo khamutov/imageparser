@@ -24,8 +24,9 @@ class ImageParser:
         array = []
         for item in data:
             for image in item.get("images"):
+                image = image.split("?").pop(0)
                 if not path_to.joinpath(self.__get_last_segment(image)).is_file():
-                    array.append(image.split("?")[0])
+                    array.append(image)
         return array
 
     async def __fetch(self, path_to: Path, dir_name: Path, url: str):
@@ -53,7 +54,7 @@ class ImageParser:
         return resp
 
     def __get_last_segment(self, url: str) -> str:
-        return str(Path(url).name.split("?")[0])
+        return Path(url).name
 
     def image_parser(self, path_to: Path):
         reader = csv.DictReader(f, ["url", "dir_name"], delimiter=";")
