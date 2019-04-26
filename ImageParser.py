@@ -13,7 +13,7 @@ from tqdm import tqdm
 from CollectMeta import Meta
 from MoveImagesToFolder import MoveImages
 
-sem = asyncio.Semaphore(999)
+sem = asyncio.Semaphore(15)
 
 file_name = "url.csv"
 max_page = 2
@@ -48,8 +48,9 @@ class ImageParser:
             response = cls.__get_response(url=url, params={"page": i})
             cls.last_page = response["last_page"]
             image_array = cls.__get_images_array(data=response.get("data"), path_to=path_to.joinpath(path_dir_name))
-            tasks = [cls.__fetch(path_to=path_to, dir_name=path_dir_name, url=image) for image in image_array]
-            for task in tqdm(asyncio.as_completed(tasks), desc="download label {}".format(path_dir_name)):
+            tasks = [asyncio.create_task(cls.__fetch(path_to=path_to, dir_name=path_dir_name, url=image)) for image in
+                     image_array]
+            for task in tqdm(tasks, desc="download label {}".format(path_dir_name)):
                 await task
 
     @classmethod
