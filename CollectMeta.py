@@ -5,7 +5,7 @@ import csv
 class Meta:
     @classmethod
     def __write_to_file(cls, data: []):
-        with open("meta.csv", "w") as file:
+        with open("meta.csv", "a") as file:
             csv_reader = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_reader.writerow(data)
 

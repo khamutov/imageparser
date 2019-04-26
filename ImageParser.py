@@ -50,7 +50,7 @@ class ImageParser:
             image_array = cls.__get_images_array(data=response.get("data"), path_to=path_to.joinpath(path_dir_name))
             tasks = [asyncio.create_task(cls.__fetch(path_to=path_to, dir_name=path_dir_name, url=image)) for image in
                      image_array]
-            for task in tqdm(tasks, desc="download label {}".format(path_dir_name)):
+            for task in tqdm(tasks, desc="download label {} {}".format(path_dir_name, i)):
                 await task
 
     @classmethod
